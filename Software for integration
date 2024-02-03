@@ -1,3 +1,5 @@
+#This code is the first attempt at writing software to integrate the EMG DAQ, ANN, and Hardware.
+
 import pyfirmata
 from pyfirmata import Arduino, SERVO
 from time import sleep
