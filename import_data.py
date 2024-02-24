@@ -18,7 +18,7 @@ all_data = pd.DataFrame()
 #     with open(filepath) as json_file:
 #         data = json.load(json_file)
 
-EMG_filepath = "../data/emg_recordings/EMG_hand_data.json"       
+EMG_filepath = "./EMG_hand_data.json"       
         
 with open(EMG_filepath) as json_file:
          data = json.load(json_file)

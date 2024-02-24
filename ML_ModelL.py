@@ -103,9 +103,9 @@ def main(dataset):
     
     
     
-Fin_Model = ANN()
-Fin_Model.load_state_dict(torch.load('model.pt'))
-Fin_Model.eval()
+# Fin_Model = ANN()
+# Fin_Model.load_state_dict(torch.load('model.pt'))
+# Fin_Model.eval()
 
 
 def run(dataset):

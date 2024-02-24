@@ -1,11 +1,17 @@
 import serial
+from ML_ModelL import classifications
 
-# Open the serial port
-ser = serial.Serial('COM3', 9600)
+for i in classifications[0:3]:
+    #get number for predictions
+    pred = i[[i==1.0]]
+    print(pred)
 
-# Send a single digit integer to Arduino
-num = int(input("Enter number: "))
-ser.write(str(num).encode())
+# # Open the serial port
+# ser = serial.Serial('COM3', 9600)
 
-# Close the serial port
-ser.close()
+# # Send a single digit integer to Arduino
+# #num = int(input("Enter number: "))
+# ser.write(str(num).encode())
+
+# # Close the serial port
+# ser.close()
