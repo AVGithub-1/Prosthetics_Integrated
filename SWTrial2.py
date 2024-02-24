@@ -18,8 +18,8 @@ epoch_duration = 2  # Epoch duration in seconds
 buffer_len = fs * epoch_duration  # Buffer length for one epoch
 
 # Preprocessing parameters
-high_pass_freq = 20  # High-pass filter cutoff frequency (Hz)
-low_pass_freq = 250  # Low-pass filter cutoff frequency (Hz)
+high_pass_freq = 150  # High-pass filter cutoff frequency (Hz)
+low_pass_freq = 50  # Low-pass filter cutoff frequency (Hz)
 notch_freq = 60  # Notch filter frequency (Hz)
 
 # Function to send data to Arduino
@@ -112,26 +112,26 @@ def process_epoch(epoch_data):
     data_str = ','.join(map(str, [rms_value, mean_power_spectrum, integral_value, derivative_value])) + '\n'
     send_data_to_arduino(data_str)
 
-if __name__ == "__main__":
-    try:
-        ser
-    except NameError:
-        print("PySerial is not installed. Please install PySerial.")
-        exit()
+# if __name__ == "__main__":
+#     try:
+#         ser
+#     except NameError:
+#         print("PySerial is not installed. Please install PySerial.")
+#         exit()
 
-    # Initialize buffer and epoch buffer
-    buffer = deque(maxlen=buffer_len)
+#     # Initialize buffer and epoch buffer
+#     buffer = deque(maxlen=buffer_len)
     
-    # Initialize LSL streams and create inlet
-    eeg_streams = pylsl.resolve_stream('type', 'EEG')
-    eeg_inlet = pylsl.stream_inlet(eeg_streams[0], recover=False)
+#     # Initialize LSL streams and create inlet
+#     eeg_streams = pylsl.resolve_stream('type', 'EEG')
+#     eeg_inlet = pylsl.stream_inlet(eeg_streams[0], recover=False)
 
-    # Initialize serial connection
-    SERIAL_PORT = 'COM1'  # Update the port accordingly
-    BAUD_RATE = 9600
-    ser = serial.Serial(SERIAL_PORT, BAUD_RATE, timeout=1)
+#     # Initialize serial connection
+#     SERIAL_PORT = 'COM1'  # Update the port accordingly
+#     BAUD_RATE = 9600
+#     ser = serial.Serial(SERIAL_PORT, BAUD_RATE, timeout=1)
     
-    # Launch LSL thread
-    lsl = threading.Thread(target=lsl_thread, args=())
-    lsl.setDaemon(False)
-    lsl.start()
+#     # Launch LSL thread
+#     lsl = threading.Thread(target=lsl_thread, args=())
+#     lsl.setDaemon(False)
+#     lsl.start()
