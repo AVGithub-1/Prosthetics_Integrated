@@ -4,6 +4,8 @@ from SWTrial2 import *
 from brainflow.board_shim import BoardShim, BrainFlowInputParams, BoardIds, BrainFlowPresets
 import collections
 from features import *
+from matplotlib import pyplot as plt
+from scipy import signal
 
 def main():
     BoardShim.enable_dev_board_logger()
@@ -50,37 +52,50 @@ def main():
     time.sleep(5)  # wait for stream to start
     # data = board.get_current_board_data (256) # get latest 256 packages or less, doesnt remove them from internal buffer
     
-    data_channel1 = collections.deque(np.zeros(100))
-    data_channel2 = collections.deque(np.zeros(100))
-    data_channel3 = collections.deque(np.zeros(100))
-    data_channel4 = collections.deque(np.zeros(100))
-    
-    while(1):       # main loop to stream data from board
+    # data_channel1 = collections.deque(np.zeros(100))
+    # data_channel2 = collections.deque(np.zeros(100))
+    # data_channel3 = collections.deque(np.zeros(100))
+    # data_channel4 = collections.deque(np.zeros(100))
+    counter = 0
+    while(counter < 3):       # main loop to stream data from board
         
         
-        data = board.get_current_board_data(args.board_id)[1:5]
+        data = board.get_board_data(num_samples=150)[1:5]
         
-        data_channel1.popleft()
-        data_channel1.append(data[0][0])
+        # data_channel1.popleft()
+        # data_channel1.append(data[0][0])
+        #
+        # data_channel2.popleft()
+        # data_channel2.append(data[1][0])
+        #
+        # data_channel3.popleft()
+        # data_channel3.append(data[2][0])
+        #
+        # data_channel4.popleft()
+        # data_channel4.append(data[3][0])
 
-        data_channel2.popleft()
-        data_channel2.append(data[1][0])
-        
-        data_channel3.popleft()
-        data_channel3.append(data[2][0])
+        # print(data)
+        # print(data.shape)
 
-        data_channel4.popleft()
-        data_channel4.append(data[3][0])
-
-    
+        data_channel3 = data[2]
 
 
-        #filtering data: butter bandpass filter, notch filter, epoching
-        data = butter_bandpass_filter(np.array(data_channel3), low_pass_freq, high_pass_freq, params.sampling_rate)
-        data = notch_filter(data, notch_freq, params.sampling_rate)
+        # #filtering data: butter bandpass filter, notch filter, epoching
+        # data = butter_bandpass_filter(np.array(data_channel3), low_pass_freq, high_pass_freq, params.sampling_rate)
+        # data = notch_filter(data, notch_freq, params.sampling_rate)
+        print(data.shape)
+        b, a = signal.iirnotch(60, 30, params.sampling_rate)
+        data = signal.filtfilt(b, a, data)
+        print(data.shape)
         #data = process_epoch(data)
-        features = get_features(np.reshape(data, data.shape[0]), train_mode = 0)
-        print(features)
+        # fft = np.fft.fft(data)
+        # f = np.fft.fftfreq(len(fft), 1/params.sampling_rate)
+        # plt.plot(f, np.abs(fft))
+        # plt.show()
+        # features = get_features(np.reshape(data, data.shape[0]), train_mode = 0)
+        # print(features)
+        # print(features.shape)
+        counter += 1
 
 
 
