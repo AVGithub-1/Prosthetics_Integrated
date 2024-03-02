@@ -57,7 +57,7 @@ def main():
     time.sleep(5)  # wait for stream to start
     
     # Set threshold value
-    threshold = 0.5
+    threshold = 0.5 # Change this depending on rest EMG
     window_size = 100  # Change this value as needed
 
     data_channels = [collections.deque(np.zeros(window_size)) for _ in range(4)]
