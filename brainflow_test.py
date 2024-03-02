@@ -3,6 +3,7 @@ import time
 from SWTrial2 import *
 from brainflow.board_shim import BoardShim, BrainFlowInputParams, BoardIds, BrainFlowPresets
 import collections
+from features import *
 
 def main():
     BoardShim.enable_dev_board_logger()
@@ -37,15 +38,16 @@ def main():
     params.timeout = args.timeout
     params.file = args.file
     params.master_board = args.master_board
-    params.sampling_rate = 250
+    params.sampling_rate = 350
 
-    
+    print(params.ip_address, type(params.ip_address))
+    print(params.serial_port, type(params.serial_port))
 
 
     board = BoardShim(args.board_id, params)
     board.prepare_session()
     board.start_stream ()
-    time.sleep(10)  # wait for stream to start
+    time.sleep(5)  # wait for stream to start
     # data = board.get_current_board_data (256) # get latest 256 packages or less, doesnt remove them from internal buffer
     
     data_channel1 = collections.deque(np.zeros(100))
@@ -70,14 +72,20 @@ def main():
         data_channel4.popleft()
         data_channel4.append(data[3][0])
 
-        print(data_channel3)
+    
 
-        data = butter_bandpass_filter(np.array(data_channel3), low_pass_freq, high_pass_freq, params.sampling_rate)
 
         #filtering data: butter bandpass filter, notch filter, epoching
-        # data = butter_bandpass_filter(data, low_pass_freq, high_pass_freq, params.sampling_rate)
-        # data = notch_filter(data, notch_freq, params.sampling_rate)
-        # data = process_epoch(data)
+        data = butter_bandpass_filter(np.array(data_channel3), low_pass_freq, high_pass_freq, params.sampling_rate)
+        data = notch_filter(data, notch_freq, params.sampling_rate)
+        #data = process_epoch(data)
+        features = get_features(np.reshape(data, data.shape[0]), train_mode = 0)
+        print(features)
+
+
+
+
+        #filtering data: butter bandpass filter, notch filter, epoching
         
 
 

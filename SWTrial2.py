@@ -69,7 +69,7 @@ def integral(data, dt):
 def derivative(data, dt):
     return np.gradient(data) / dt
 
-def calculate_features(epoch_data):
+def calculate_features(epoch_data, high_pass_freq, low_pass_freq, fs):
     # Apply high-pass, low-pass, and notch filters
     filtered_data = butter_bandpass_filter(epoch_data, high_pass_freq, low_pass_freq, fs)
     filtered_data = notch_filter(filtered_data, notch_freq, fs)
@@ -110,7 +110,7 @@ def process_epoch(epoch_data):
     
     # Convert filtered data to string and send to Arduino
     data_str = ','.join(map(str, [rms_value, mean_power_spectrum, integral_value, derivative_value])) + '\n'
-    send_data_to_arduino(data_str)
+    #send_data_to_arduino(data_str)
 
 # if __name__ == "__main__":
 #     try:
