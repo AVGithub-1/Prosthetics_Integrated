@@ -48,7 +48,7 @@ def main():
 
     board = BoardShim(args.board_id, params)
     board.prepare_session()
-    board.start_stream ()
+    board.start_stream(60)
     time.sleep(5)  # wait for stream to start
     # data = board.get_current_board_data (256) # get latest 256 packages or less, doesnt remove them from internal buffer
     
@@ -57,10 +57,15 @@ def main():
     # data_channel3 = collections.deque(np.zeros(100))
     # data_channel4 = collections.deque(np.zeros(100))
     counter = 0
-    while(counter < 3):       # main loop to stream data from board
+    powers = np.zeros((4, 100))
+    power_means = np.zeros(100)
+    rms = np.zeros(100)
+    state = np.zeros(100)
+    while(counter < 100):       # main loop to stream data from board
         
-        
-        data = board.get_board_data(num_samples=150)[1:5]
+        print(counter)
+        data = board.get_board_data()[1:5]
+        time.sleep(0.25)
         
         # data_channel1.popleft()
         # data_channel1.append(data[0][0])
@@ -81,22 +86,36 @@ def main():
 
 
         # #filtering data: butter bandpass filter, notch filter, epoching
-        # data = butter_bandpass_filter(np.array(data_channel3), low_pass_freq, high_pass_freq, params.sampling_rate)
-        # data = notch_filter(data, notch_freq, params.sampling_rate)
-        print(data.shape)
+
+
         b, a = signal.iirnotch(60, 30, params.sampling_rate)
         data = signal.filtfilt(b, a, data)
-        print(data.shape)
-        #data = process_epoch(data)
-        # fft = np.fft.fft(data)
-        # f = np.fft.fftfreq(len(fft), 1/params.sampling_rate)
-        # plt.plot(f, np.abs(fft))
-        # plt.show()
+        data = butter_bandpass_filter(data, 10, 80, params.sampling_rate)
+        # print(data.shape)
+        # data = process_epoch(data)
+        for i in range(4):
+            fft = np.fft.fft(data[i])
+            power = np.mean(np.abs(fft)**2)
+            powers[i][counter] = 0 if power > 500000 else power
+        power_means[counter] = np.mean(powers[:, counter])
+        if counter >= 4:
+            rms[counter] = np.mean(power_means[counter-4:counter + 1])
+            if rms[counter] > 25000:
+                print("CLENCH")
+                state[counter] = 1
+            else:
+                print("RELAX")
         # features = get_features(np.reshape(data, data.shape[0]), train_mode = 0)
         # print(features)
         # print(features.shape)
         counter += 1
 
+    plt.plot(np.mean(powers, axis = 0), label = "Mean Power")
+    plt.plot(rms, label = "RMS")
+    plt.show()
+
+    plt.stem(state)
+    plt.show()
 
 
 
