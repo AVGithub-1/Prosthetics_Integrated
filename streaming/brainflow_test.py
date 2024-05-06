@@ -8,6 +8,7 @@ from matplotlib import pyplot as plt
 from scipy import signal
 
 def main():
+    num_channels = 2
     BoardShim.enable_dev_board_logger()
 
     parser = argparse.ArgumentParser()
@@ -40,7 +41,7 @@ def main():
     params.timeout = args.timeout
     params.file = args.file
     params.master_board = args.master_board
-    params.sampling_rate = 350
+    params.sampling_rate = 200
 
     print(params.ip_address, type(params.ip_address))
     print(params.serial_port, type(params.serial_port))
@@ -57,7 +58,87 @@ def main():
     # data_channel3 = collections.deque(np.zeros(100))
     # data_channel4 = collections.deque(np.zeros(100))
     counter = 0
-    powers = np.zeros((4, 100))
+    powers = np.zeros((num_channels, 15))
+    power_means = np.zeros(15)
+    rms = np.zeros(15)
+
+    print("Calibrating starting...")
+    time.sleep(2)
+    print("Clench in 3 seconds...")
+    time.sleep(1)
+    print("Clench in 2 seconds...")
+    time.sleep(1)
+    print("Clench in 1 second...")
+    time.sleep(1)
+    print("Clench now!")
+    while(counter < 15): # main loop to stream data from board
+        print(counter)
+        data = board.get_board_data()[1:5]
+        print(data.shape)
+        time.sleep(0.3)
+        b, a = signal.iirnotch(60, 30, params.sampling_rate)
+        data = signal.filtfilt(b, a, data)
+        data = butter_bandpass_filter(data, 10, 80, params.sampling_rate)
+        # print(data.shape)
+        # data = process_epoch(data)
+        for i in range(num_channels):
+            fft = np.fft.fft(data[i])
+            power = np.mean(np.abs(fft) ** 2)
+            powers[i][counter] = 0 if power > 500000 else power
+        power_means[counter] = np.mean(powers[:, counter])
+        if counter >= 4:
+            rms[counter] = np.mean(power_means[counter - 4:counter + 1])
+        counter += 1
+    plt.plot(rms)
+    plt.show()
+    mean_clench = np.mean(rms[4:])
+    print(mean_clench)
+    counter = 0
+
+    print("Stop!")
+    time.sleep(2)
+    print("Completely relax in 3 seconds...")
+    time.sleep(1)
+    print("Completely relax in 2 seconds...")
+    time.sleep(1)
+    print("Completely relax in 1 second...")
+    time.sleep(1)
+    print("Completely relax now!")
+
+    while (counter < 15):  # main loop to stream data from board
+        print(counter)
+        data = board.get_board_data()[1:5]
+        print(data.shape)
+        time.sleep(0.3)
+        b, a = signal.iirnotch(60, 30, params.sampling_rate)
+        data = signal.filtfilt(b, a, data)
+        data = butter_bandpass_filter(data, 10, 80, params.sampling_rate)
+        # print(data.shape)
+        # data = process_epoch(data)
+        for i in range(num_channels):
+            fft = np.fft.fft(data[i])
+            power = np.mean(np.abs(fft) ** 2)
+            powers[i][counter] = 0 if power > 500000 else power
+        power_means[counter] = np.mean(powers[:, counter])
+        if counter >= 4:
+            rms[counter] = np.mean(power_means[counter - 4:counter + 1])
+        counter += 1
+
+    plt.plot(rms)
+    plt.show()
+    mean_relax = np.mean(rms[4:])
+    print(mean_relax)
+
+    threshold = mean_relax + 0.3 * (mean_clench - mean_relax)
+    print("Starting real time streaming...")
+    time.sleep(2)
+    print("2")
+    time.sleep(1)
+    print("1")
+    time.sleep(1)
+    print("Start!")
+    counter = 0
+    powers = np.zeros((num_channels, 100))
     power_means = np.zeros(100)
     rms = np.zeros(100)
     state = np.zeros(100)
@@ -65,7 +146,8 @@ def main():
         
         #print(counter)
         data = board.get_board_data()[1:5]
-        time.sleep(0.25)
+        print(data.shape)
+        time.sleep(0.3)
         
         # data_channel1.popleft()
         # data_channel1.append(data[0][0])
@@ -93,14 +175,14 @@ def main():
         data = butter_bandpass_filter(data, 10, 80, params.sampling_rate)
         # print(data.shape)
         # data = process_epoch(data)
-        for i in range(4):
+        for i in range(num_channels):
             fft = np.fft.fft(data[i])
             power = np.mean(np.abs(fft)**2)
             powers[i][counter] = 0 if power > 500000 else power
         power_means[counter] = np.mean(powers[:, counter])
         if counter >= 4:
             rms[counter] = np.mean(power_means[counter-4:counter + 1])
-            if rms[counter] > 4000:
+            if rms[counter] > threshold:
                 print("CLENCH")
                 state[counter] = 1
             else:
@@ -110,7 +192,15 @@ def main():
         # print(features.shape)
         counter += 1
 
-    # plt.plot(np.mean(powers, axis = 0), label = "Mean Power")
+    plt.plot(powers[0])
+    plt.plot(powers[1])
+    plt.plot(powers[2])
+    plt.plot(powers[3])
+    plt.legend(["Channel 1", "Channel 2", "Channel 3", "Channel 4"])
+    plt.show()
+
+    plt.plot(np.mean(powers, axis = 0), label = "Mean Power")
+
     plt.plot(rms, label = "RMS")
     plt.legend()
     plt.show()
