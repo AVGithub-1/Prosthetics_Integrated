@@ -105,7 +105,7 @@ def main():
     time.sleep(1)
     print("Completely relax now!")
 
-    while (counter < 15):  # main loop to stream data from board
+    while (counter < 100):  # main loop to stream data from board
         print(counter)
         data = board.get_board_data()[1:5]
         print(data.shape)
