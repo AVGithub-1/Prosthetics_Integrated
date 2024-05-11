@@ -8,7 +8,7 @@ from matplotlib import pyplot as plt
 from scipy import signal
 
 def main():
-    num_channels = 2
+    num_channels = 4
     BoardShim.enable_dev_board_logger()
 
     parser = argparse.ArgumentParser()
@@ -109,7 +109,7 @@ def main():
         print(counter)
         data = board.get_board_data()[1:5]
         print(data.shape)
-        time.sleep(0.3)
+        time.sleep(0.2)
         b, a = signal.iirnotch(60, 30, params.sampling_rate)
         data = signal.filtfilt(b, a, data)
         data = butter_bandpass_filter(data, 10, 80, params.sampling_rate)
